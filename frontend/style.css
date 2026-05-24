@@ -597,6 +597,9 @@ select {
 }
 .view-header {
   margin-bottom: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .view-header h2 {
   font-family: "Nunito", sans-serif;

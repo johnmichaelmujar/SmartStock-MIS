@@ -55,8 +55,8 @@ let expenses = [];
 let editingId = null;
 let deleteTarget = null;
 let deleteSaleId = null;
-let salesChartMode = "revenue"; // 'revenue' | 'units'
-let dashChartMode = "revenue"; // 'revenue' | 'units'
+let salesChartMode = "revenue";
+let dashChartMode = "revenue";
 
 /* ══════════════════════════════════════════════
    INIT
@@ -64,11 +64,18 @@ let dashChartMode = "revenue"; // 'revenue' | 'units'
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("loginPage").classList.add("active");
   document.getElementById("appPage").classList.remove("active");
+
   loadData();
   loadAppearance();
   updateTopbarDate();
   setInterval(updateTopbarDate, 60000);
-  if (sessionStorage.getItem("palengke_auth") === "1") showApp();
+
+  if (sessionStorage.getItem("palengke_auth") === "1") {
+    showApp();
+    fetchProducts();
+    fetchSales();
+    fetchExpenses();
+  }
 });
 
 function updateTopbarDate() {
@@ -88,1258 +95,19 @@ function updateTopbarDate() {
 function loadData() {
   try {
     if (localStorage.getItem(VER_KEY) !== CURR_VER) {
-      localStorage.removeItem(PROD_KEY);
-      localStorage.removeItem(SALES_KEY);
-      localStorage.removeItem("palengke_profile");
       localStorage.setItem(VER_KEY, CURR_VER);
     }
-    const rp = localStorage.getItem(PROD_KEY);
-    const rs = localStorage.getItem(SALES_KEY);
-    products = rp ? JSON.parse(rp) : seedProducts();
-    sales = rs ? JSON.parse(rs) : seedSales();
-    const re = localStorage.getItem(EXP_KEY);
-    if (re) {
-      const parsed = JSON.parse(re);
-      // Remove any July records (leftover from old seed)
-      expenses = parsed.filter((e) => !e.date.includes("-07-"));
-      localStorage.setItem(EXP_KEY, JSON.stringify(expenses));
-    } else {
-      expenses = seedExpenses();
-    }
-    // Seed default profile name if not set
+
+    // Load only non-database UI/Profile state
     if (!localStorage.getItem("palengke_profile")) {
       localStorage.setItem(
         "palengke_profile",
         JSON.stringify({ name: "Admin", role: "Store Manager" }),
       );
     }
-  } catch {
-    products = seedProducts();
-    sales = seedSales();
+  } catch (err) {
+    console.error("Error initializing UI preferences:", err);
   }
-}
-
-function saveProducts() {
-  localStorage.setItem(PROD_KEY, JSON.stringify(products));
-}
-function saveSales() {
-  localStorage.setItem(SALES_KEY, JSON.stringify(sales));
-}
-function saveExpenses() {
-  localStorage.setItem(EXP_KEY, JSON.stringify(expenses));
-}
-
-/* ── Seed Products (113 items) ────────────────────────── */
-function seedProducts() {
-  const p = [
-    // CANNED GOODS (16)
-    {
-      id: uid(),
-      name: "Argentina Corned Beef 150g",
-      category: "Canned Goods",
-      price: 48,
-      qty: 80,
-      dateAdded: today(),
-      expiry: "2027-06-30",
-    },
-    {
-      id: uid(),
-      name: "Argentina Corned Beef 260g",
-      category: "Canned Goods",
-      price: 82,
-      qty: 55,
-      dateAdded: today(),
-      expiry: "2027-08-31",
-    },
-    {
-      id: uid(),
-      name: "Century Tuna Flakes in Oil",
-      category: "Canned Goods",
-      price: 32,
-      qty: 9,
-      dateAdded: today(),
-      expiry: "2026-11-30",
-    },
-    {
-      id: uid(),
-      name: "Century Tuna Hot & Spicy",
-      category: "Canned Goods",
-      price: 32,
-      qty: 40,
-      dateAdded: today(),
-      expiry: "2027-03-31",
-    },
-    {
-      id: uid(),
-      name: "Mega Sardines in Tomato Sauce",
-      category: "Canned Goods",
-      price: 18,
-      qty: 120,
-      dateAdded: today(),
-      expiry: "2027-01-31",
-    },
-    {
-      id: uid(),
-      name: "Ligo Sardines in Oil",
-      category: "Canned Goods",
-      price: 20,
-      qty: 95,
-      dateAdded: today(),
-      expiry: "2026-09-30",
-    },
-    {
-      id: uid(),
-      name: "Del Monte Tomato Sauce 250g",
-      category: "Canned Goods",
-      price: 22,
-      qty: 60,
-      dateAdded: today(),
-      expiry: "2026-12-31",
-    },
-    {
-      id: uid(),
-      name: "Hunt's Pork & Beans 230g",
-      category: "Canned Goods",
-      price: 28,
-      qty: 50,
-      dateAdded: today(),
-      expiry: "2027-02-28",
-    },
-    {
-      id: uid(),
-      name: "San Marino Corned Tuna",
-      category: "Canned Goods",
-      price: 28,
-      qty: 45,
-      dateAdded: today(),
-      expiry: "2026-10-31",
-    },
-    {
-      id: uid(),
-      name: "Delimondo Corned Beef 380g",
-      category: "Canned Goods",
-      price: 165,
-      qty: 20,
-      dateAdded: today(),
-      expiry: "2027-05-31",
-    },
-    {
-      id: uid(),
-      name: "555 Sardines Spanish Style",
-      category: "Canned Goods",
-      price: 22,
-      qty: 75,
-      dateAdded: today(),
-      expiry: "2026-08-31",
-    },
-    {
-      id: uid(),
-      name: "Purefoods Liver Spread 165g",
-      category: "Canned Goods",
-      price: 38,
-      qty: 35,
-      dateAdded: today(),
-      expiry: "2026-07-31",
-    },
-    {
-      id: uid(),
-      name: "Reno Liver Spread 85g",
-      category: "Canned Goods",
-      price: 22,
-      qty: 60,
-      dateAdded: today(),
-      expiry: "2026-11-30",
-    },
-    {
-      id: uid(),
-      name: "Del Monte Fruit Cocktail 432g",
-      category: "Canned Goods",
-      price: 65,
-      qty: 30,
-      dateAdded: today(),
-      expiry: "2027-04-30",
-    },
-    {
-      id: uid(),
-      name: "Jolly Mushroom Pieces 400g",
-      category: "Canned Goods",
-      price: 42,
-      qty: 28,
-      dateAdded: today(),
-      expiry: "2027-01-31",
-    },
-    {
-      id: uid(),
-      name: "UFC Spaghetti Sauce Sweet",
-      category: "Canned Goods",
-      price: 35,
-      qty: 55,
-      dateAdded: today(),
-      expiry: "2026-09-30",
-    },
-    // INSTANT NOODLES (13)
-    {
-      id: uid(),
-      name: "Lucky Me Pancit Canton Original",
-      category: "Instant Noodles",
-      price: 15,
-      qty: 200,
-      dateAdded: today(),
-      expiry: "2026-09-30",
-    },
-    {
-      id: uid(),
-      name: "Lucky Me Pancit Canton Chilimansi",
-      category: "Instant Noodles",
-      price: 15,
-      qty: 180,
-      dateAdded: today(),
-      expiry: "2026-10-31",
-    },
-    {
-      id: uid(),
-      name: "Lucky Me Chicken Noodle Soup",
-      category: "Instant Noodles",
-      price: 14,
-      qty: 150,
-      dateAdded: today(),
-      expiry: "2026-08-31",
-    },
-    {
-      id: uid(),
-      name: "Lucky Me Sweet & Spicy",
-      category: "Instant Noodles",
-      price: 15,
-      qty: 160,
-      dateAdded: today(),
-      expiry: "2026-11-30",
-    },
-    {
-      id: uid(),
-      name: "Lucky Me Superior Chicken",
-      category: "Instant Noodles",
-      price: 14,
-      qty: 130,
-      dateAdded: today(),
-      expiry: "2026-07-31",
-    },
-    {
-      id: uid(),
-      name: "Lucky Me Pancit Canton Batchoy",
-      category: "Instant Noodles",
-      price: 15,
-      qty: 140,
-      dateAdded: today(),
-      expiry: "2026-09-30",
-    },
-    {
-      id: uid(),
-      name: "Nissin Cup Noodles Seafood",
-      category: "Instant Noodles",
-      price: 28,
-      qty: 7,
-      dateAdded: today(),
-      expiry: "2026-06-30",
-    },
-    {
-      id: uid(),
-      name: "Nissin Cup Noodles Beef",
-      category: "Instant Noodles",
-      price: 28,
-      qty: 60,
-      dateAdded: today(),
-      expiry: "2026-08-31",
-    },
-    {
-      id: uid(),
-      name: "Payless Beef Flavor",
-      category: "Instant Noodles",
-      price: 10,
-      qty: 220,
-      dateAdded: today(),
-      expiry: "2026-12-31",
-    },
-    {
-      id: uid(),
-      name: "Quickchow Instant Mami Beef",
-      category: "Instant Noodles",
-      price: 12,
-      qty: 90,
-      dateAdded: today(),
-      expiry: "2026-10-31",
-    },
-    {
-      id: uid(),
-      name: "Maruchan Ramen Chicken",
-      category: "Instant Noodles",
-      price: 18,
-      qty: 45,
-      dateAdded: today(),
-      expiry: "2026-09-30",
-    },
-    {
-      id: uid(),
-      name: "Monde Nissin Batchoy Flavor",
-      category: "Instant Noodles",
-      price: 13,
-      qty: 100,
-      dateAdded: today(),
-      expiry: "2026-11-30",
-    },
-    {
-      id: uid(),
-      name: "Koka Purple Wheat Noodles",
-      category: "Instant Noodles",
-      price: 35,
-      qty: 5,
-      dateAdded: today(),
-      expiry: "2026-05-31",
-    },
-    // BEVERAGES (14)
-    {
-      id: uid(),
-      name: "Nescafe 3-in-1 Original 10s",
-      category: "Beverages",
-      price: 38,
-      qty: 75,
-      dateAdded: today(),
-      expiry: "2026-12-31",
-    },
-    {
-      id: uid(),
-      name: "Nescafe Classic Sachet 2g",
-      category: "Beverages",
-      price: 6,
-      qty: 300,
-      dateAdded: today(),
-      expiry: "2027-03-31",
-    },
-    {
-      id: uid(),
-      name: "Milo Sachet 22g",
-      category: "Beverages",
-      price: 9,
-      qty: 250,
-      dateAdded: today(),
-      expiry: "2026-10-31",
-    },
-    {
-      id: uid(),
-      name: "Milo Activ-Go Pouch 1kg",
-      category: "Beverages",
-      price: 285,
-      qty: 12,
-      dateAdded: today(),
-      expiry: "2026-08-31",
-    },
-    {
-      id: uid(),
-      name: "San Miguel Beer Pale 330ml",
-      category: "Beverages",
-      price: 55,
-      qty: 4,
-      dateAdded: today(),
-      expiry: "2026-09-30",
-    },
-    {
-      id: uid(),
-      name: "Red Horse Beer 500ml",
-      category: "Beverages",
-      price: 65,
-      qty: 24,
-      dateAdded: today(),
-      expiry: "2026-11-30",
-    },
-    {
-      id: uid(),
-      name: "Coca-Cola Mismo 237ml",
-      category: "Beverages",
-      price: 22,
-      qty: 48,
-      dateAdded: today(),
-      expiry: "2026-07-31",
-    },
-    {
-      id: uid(),
-      name: "Royal Tru-Orange 1L",
-      category: "Beverages",
-      price: 42,
-      qty: 36,
-      dateAdded: today(),
-      expiry: "2026-06-30",
-    },
-    {
-      id: uid(),
-      name: "C2 Green Tea Apple 230ml",
-      category: "Beverages",
-      price: 18,
-      qty: 55,
-      dateAdded: today(),
-      expiry: "2026-05-15",
-    },
-    {
-      id: uid(),
-      name: "Gatorade Lemon-Lime 500ml",
-      category: "Beverages",
-      price: 45,
-      qty: 30,
-      dateAdded: today(),
-      expiry: "2026-08-31",
-    },
-    {
-      id: uid(),
-      name: "Kopiko Brown Coffee 30s",
-      category: "Beverages",
-      price: 72,
-      qty: 40,
-      dateAdded: today(),
-      expiry: "2027-01-31",
-    },
-    {
-      id: uid(),
-      name: "Tang Orange Juice Sachet",
-      category: "Beverages",
-      price: 5,
-      qty: 500,
-      dateAdded: today(),
-      expiry: "2027-06-30",
-    },
-    {
-      id: uid(),
-      name: "Nestea Iced Tea Lemon Sachet",
-      category: "Beverages",
-      price: 5,
-      qty: 400,
-      dateAdded: today(),
-      expiry: "2027-05-31",
-    },
-    {
-      id: uid(),
-      name: "Ovaltine Classic 300g",
-      category: "Beverages",
-      price: 112,
-      qty: 18,
-      dateAdded: today(),
-      expiry: "2026-09-30",
-    },
-    // DAIRY (10)
-    {
-      id: uid(),
-      name: "Eden Cheese 165g",
-      category: "Dairy",
-      price: 65,
-      qty: 30,
-      dateAdded: today(),
-      expiry: "2026-06-30",
-    },
-    {
-      id: uid(),
-      name: "Eden Cheese 440g",
-      category: "Dairy",
-      price: 148,
-      qty: 15,
-      dateAdded: today(),
-      expiry: "2026-07-31",
-    },
-    {
-      id: uid(),
-      name: "Magnolia Fresh Milk 1L",
-      category: "Dairy",
-      price: 92,
-      qty: 8,
-      dateAdded: today(),
-      expiry: "2026-03-25",
-    },
-    {
-      id: uid(),
-      name: "Alaska Evaporated Milk 370ml",
-      category: "Dairy",
-      price: 42,
-      qty: 48,
-      dateAdded: today(),
-      expiry: "2026-10-31",
-    },
-    {
-      id: uid(),
-      name: "Nestle Condensed Milk 300ml",
-      category: "Dairy",
-      price: 38,
-      qty: 55,
-      dateAdded: today(),
-      expiry: "2026-11-30",
-    },
-    {
-      id: uid(),
-      name: "Bear Brand Powdered Milk 300g",
-      category: "Dairy",
-      price: 135,
-      qty: 22,
-      dateAdded: today(),
-      expiry: "2026-08-31",
-    },
-    {
-      id: uid(),
-      name: "Anchor Full Cream Milk 400g",
-      category: "Dairy",
-      price: 195,
-      qty: 10,
-      dateAdded: today(),
-      expiry: "2026-09-30",
-    },
-    {
-      id: uid(),
-      name: "Magnolia Butter 225g",
-      category: "Dairy",
-      price: 82,
-      qty: 20,
-      dateAdded: today(),
-      expiry: "2026-05-31",
-    },
-    {
-      id: uid(),
-      name: "Nestle All Purpose Cream 250ml",
-      category: "Dairy",
-      price: 55,
-      qty: 35,
-      dateAdded: today(),
-      expiry: "2026-07-31",
-    },
-    {
-      id: uid(),
-      name: "Selecta Ice Cream Vanilla 750ml",
-      category: "Dairy",
-      price: 185,
-      qty: 6,
-      dateAdded: today(),
-      expiry: "2026-06-30",
-    },
-    // CONDIMENTS (12)
-    {
-      id: uid(),
-      name: "UFC Banana Ketchup 320g",
-      category: "Condiments",
-      price: 42,
-      qty: 50,
-      dateAdded: today(),
-      expiry: "2026-12-31",
-    },
-    {
-      id: uid(),
-      name: "Jufran Banana Sauce 320g",
-      category: "Condiments",
-      price: 45,
-      qty: 40,
-      dateAdded: today(),
-      expiry: "2027-01-31",
-    },
-    {
-      id: uid(),
-      name: "Datu Puti Vinegar 1L",
-      category: "Condiments",
-      price: 32,
-      qty: 45,
-      dateAdded: today(),
-      expiry: "2027-06-30",
-    },
-    {
-      id: uid(),
-      name: "Datu Puti Soy Sauce 1L",
-      category: "Condiments",
-      price: 38,
-      qty: 50,
-      dateAdded: today(),
-      expiry: "2027-03-31",
-    },
-    {
-      id: uid(),
-      name: "Silver Swan Soy Sauce 1L",
-      category: "Condiments",
-      price: 40,
-      qty: 38,
-      dateAdded: today(),
-      expiry: "2027-02-28",
-    },
-    {
-      id: uid(),
-      name: "Mama Sita's Kare-Kare Mix 50g",
-      category: "Condiments",
-      price: 22,
-      qty: 65,
-      dateAdded: today(),
-      expiry: "2026-11-30",
-    },
-    {
-      id: uid(),
-      name: "Mama Sita's Adobo Mix",
-      category: "Condiments",
-      price: 18,
-      qty: 70,
-      dateAdded: today(),
-      expiry: "2026-10-31",
-    },
-    {
-      id: uid(),
-      name: "Maggi Magic Sarap 8g",
-      category: "Condiments",
-      price: 5,
-      qty: 400,
-      dateAdded: today(),
-      expiry: "2026-09-30",
-    },
-    {
-      id: uid(),
-      name: "Knorr Sinigang Mix 44g",
-      category: "Condiments",
-      price: 18,
-      qty: 80,
-      dateAdded: today(),
-      expiry: "2026-12-31",
-    },
-    {
-      id: uid(),
-      name: "Ajinomoto Vetsin 100g",
-      category: "Condiments",
-      price: 22,
-      qty: 90,
-      dateAdded: today(),
-      expiry: "2027-05-31",
-    },
-    {
-      id: uid(),
-      name: "Lorins Patis Fish Sauce 340ml",
-      category: "Condiments",
-      price: 30,
-      qty: 35,
-      dateAdded: today(),
-      expiry: "2026-08-31",
-    },
-    {
-      id: uid(),
-      name: "Lee Kum Kee Oyster Sauce 255g",
-      category: "Condiments",
-      price: 58,
-      qty: 28,
-      dateAdded: today(),
-      expiry: "2026-10-31",
-    },
-    // SNACKS (16)
-    {
-      id: uid(),
-      name: "Sky Flakes Plain Crackers 250g",
-      category: "Snacks",
-      price: 35,
-      qty: 85,
-      dateAdded: today(),
-      expiry: "2026-09-30",
-    },
-    {
-      id: uid(),
-      name: "Rebisco Crackers 250g",
-      category: "Snacks",
-      price: 30,
-      qty: 100,
-      dateAdded: today(),
-      expiry: "2026-08-31",
-    },
-    {
-      id: uid(),
-      name: "Oishi Prawn Crackers 90g",
-      category: "Snacks",
-      price: 28,
-      qty: 60,
-      dateAdded: today(),
-      expiry: "2026-07-31",
-    },
-    {
-      id: uid(),
-      name: "Oishi Pillows Choco 38g",
-      category: "Snacks",
-      price: 12,
-      qty: 120,
-      dateAdded: today(),
-      expiry: "2026-06-30",
-    },
-    {
-      id: uid(),
-      name: "Piattos Cheese 85g",
-      category: "Snacks",
-      price: 32,
-      qty: 70,
-      dateAdded: today(),
-      expiry: "2026-08-31",
-    },
-    {
-      id: uid(),
-      name: "Jack 'n Jill Chippy BBQ 110g",
-      category: "Snacks",
-      price: 28,
-      qty: 55,
-      dateAdded: today(),
-      expiry: "2026-07-31",
-    },
-    {
-      id: uid(),
-      name: "Richeese Cheese Puff 65g",
-      category: "Snacks",
-      price: 22,
-      qty: 80,
-      dateAdded: today(),
-      expiry: "2026-09-30",
-    },
-    {
-      id: uid(),
-      name: "Clover Chips 85g",
-      category: "Snacks",
-      price: 20,
-      qty: 95,
-      dateAdded: today(),
-      expiry: "2026-06-30",
-    },
-    {
-      id: uid(),
-      name: "Hansel Filled Choco 150g",
-      category: "Snacks",
-      price: 38,
-      qty: 45,
-      dateAdded: today(),
-      expiry: "2026-10-31",
-    },
-    {
-      id: uid(),
-      name: "Fita Crackers 250g",
-      category: "Snacks",
-      price: 32,
-      qty: 60,
-      dateAdded: today(),
-      expiry: "2026-09-30",
-    },
-    {
-      id: uid(),
-      name: "Nova Country Cheddar 78g",
-      category: "Snacks",
-      price: 22,
-      qty: 75,
-      dateAdded: today(),
-      expiry: "2026-08-31",
-    },
-    {
-      id: uid(),
-      name: "Lala Butter Cookies 100g",
-      category: "Snacks",
-      price: 28,
-      qty: 50,
-      dateAdded: today(),
-      expiry: "2026-07-31",
-    },
-    {
-      id: uid(),
-      name: "Monde Mamon 10s",
-      category: "Snacks",
-      price: 45,
-      qty: 3,
-      dateAdded: today(),
-      expiry: "2026-04-15",
-    },
-    {
-      id: uid(),
-      name: "Nips Chocolate Candy 30g",
-      category: "Snacks",
-      price: 18,
-      qty: 150,
-      dateAdded: today(),
-      expiry: "2026-11-30",
-    },
-    {
-      id: uid(),
-      name: "Cloud 9 Chocolate Bar 26g",
-      category: "Snacks",
-      price: 12,
-      qty: 200,
-      dateAdded: today(),
-      expiry: "2026-10-31",
-    },
-    {
-      id: uid(),
-      name: "Mentos Mint Candy Roll",
-      category: "Snacks",
-      price: 15,
-      qty: 80,
-      dateAdded: today(),
-      expiry: "2026-12-31",
-    },
-    // PERSONAL CARE (14)
-    {
-      id: uid(),
-      name: "Palmolive Shampoo Sachet 12ml",
-      category: "Personal Care",
-      price: 7,
-      qty: 300,
-      dateAdded: today(),
-      expiry: "2027-06-30",
-    },
-    {
-      id: uid(),
-      name: "Palmolive Conditioner Sachet",
-      category: "Personal Care",
-      price: 7,
-      qty: 250,
-      dateAdded: today(),
-      expiry: "2027-05-31",
-    },
-    {
-      id: uid(),
-      name: "Head & Shoulders Sachet 10ml",
-      category: "Personal Care",
-      price: 9,
-      qty: 200,
-      dateAdded: today(),
-      expiry: "2027-04-30",
-    },
-    {
-      id: uid(),
-      name: "Cream Silk Sachet 10ml",
-      category: "Personal Care",
-      price: 7,
-      qty: 220,
-      dateAdded: today(),
-      expiry: "2027-03-31",
-    },
-    {
-      id: uid(),
-      name: "Safeguard Bar Soap 135g",
-      category: "Personal Care",
-      price: 38,
-      qty: 80,
-      dateAdded: today(),
-      expiry: "2027-08-31",
-    },
-    {
-      id: uid(),
-      name: "Dove Bar Soap 135g",
-      category: "Personal Care",
-      price: 45,
-      qty: 60,
-      dateAdded: today(),
-      expiry: "2027-07-31",
-    },
-    {
-      id: uid(),
-      name: "Colgate Toothpaste 75ml",
-      category: "Personal Care",
-      price: 52,
-      qty: 45,
-      dateAdded: today(),
-      expiry: "2027-02-28",
-    },
-    {
-      id: uid(),
-      name: "Hapee Toothpaste 115g",
-      category: "Personal Care",
-      price: 35,
-      qty: 55,
-      dateAdded: today(),
-      expiry: "2027-01-31",
-    },
-    {
-      id: uid(),
-      name: "Surf Powder Detergent 66g",
-      category: "Personal Care",
-      price: 12,
-      qty: 150,
-      dateAdded: today(),
-      expiry: "2027-06-30",
-    },
-    {
-      id: uid(),
-      name: "Ariel Powder Detergent 66g",
-      category: "Personal Care",
-      price: 14,
-      qty: 130,
-      dateAdded: today(),
-      expiry: "2027-05-31",
-    },
-    {
-      id: uid(),
-      name: "Downy Fabric Conditioner Sachet",
-      category: "Personal Care",
-      price: 8,
-      qty: 200,
-      dateAdded: today(),
-      expiry: "2027-04-30",
-    },
-    {
-      id: uid(),
-      name: "Zonrox Bleach 250ml",
-      category: "Personal Care",
-      price: 22,
-      qty: 40,
-      dateAdded: today(),
-      expiry: "2026-12-31",
-    },
-    {
-      id: uid(),
-      name: "Sandblock SPF50 Sachet",
-      category: "Personal Care",
-      price: 12,
-      qty: 5,
-      dateAdded: today(),
-      expiry: "2026-06-30",
-    },
-    {
-      id: uid(),
-      name: "Biogesic Paracetamol 500mg",
-      category: "Personal Care",
-      price: 12,
-      qty: 8,
-      dateAdded: today(),
-      expiry: "2027-09-30",
-    },
-    // RICE & GRAINS (8)
-    {
-      id: uid(),
-      name: "White King Rice 2kg",
-      category: "Rice & Grains",
-      price: 115,
-      qty: 6,
-      dateAdded: today(),
-      expiry: "2026-12-31",
-    },
-    {
-      id: uid(),
-      name: "Sinandomeng Rice 5kg",
-      category: "Rice & Grains",
-      price: 265,
-      qty: 18,
-      dateAdded: today(),
-      expiry: "2027-01-31",
-    },
-    {
-      id: uid(),
-      name: "Jasmine Rice Premium 2kg",
-      category: "Rice & Grains",
-      price: 135,
-      qty: 12,
-      dateAdded: today(),
-      expiry: "2026-11-30",
-    },
-    {
-      id: uid(),
-      name: "Quaker Oats Quick Cook 800g",
-      category: "Rice & Grains",
-      price: 168,
-      qty: 20,
-      dateAdded: today(),
-      expiry: "2026-10-31",
-    },
-    {
-      id: uid(),
-      name: "Harina Flour 1kg",
-      category: "Rice & Grains",
-      price: 52,
-      qty: 35,
-      dateAdded: today(),
-      expiry: "2026-08-31",
-    },
-    {
-      id: uid(),
-      name: "White Sugar 1kg",
-      category: "Rice & Grains",
-      price: 68,
-      qty: 40,
-      dateAdded: today(),
-      expiry: "2027-12-31",
-    },
-    {
-      id: uid(),
-      name: "Brown Sugar 1kg",
-      category: "Rice & Grains",
-      price: 72,
-      qty: 30,
-      dateAdded: today(),
-      expiry: "2027-11-30",
-    },
-    {
-      id: uid(),
-      name: "Iodized Salt 250g",
-      category: "Rice & Grains",
-      price: 15,
-      qty: 100,
-      dateAdded: today(),
-      expiry: "2028-06-30",
-    },
-    // OTHERS (10)
-    {
-      id: uid(),
-      name: "Minola Cooking Oil 1L",
-      category: "Others",
-      price: 88,
-      qty: 25,
-      dateAdded: today(),
-      expiry: "2026-09-30",
-    },
-    {
-      id: uid(),
-      name: "Baguio Vegetable Oil 1L",
-      category: "Others",
-      price: 82,
-      qty: 30,
-      dateAdded: today(),
-      expiry: "2026-10-31",
-    },
-    {
-      id: uid(),
-      name: "Spam Classic 340g",
-      category: "Others",
-      price: 195,
-      qty: 14,
-      dateAdded: today(),
-      expiry: "2027-03-31",
-    },
-    {
-      id: uid(),
-      name: "Knorr Chicken Cube 10g",
-      category: "Others",
-      price: 5,
-      qty: 350,
-      dateAdded: today(),
-      expiry: "2026-11-30",
-    },
-    {
-      id: uid(),
-      name: "Ricoa Flat Tops Chocolate 50g",
-      category: "Others",
-      price: 18,
-      qty: 95,
-      dateAdded: today(),
-      expiry: "2026-08-31",
-    },
-    {
-      id: uid(),
-      name: "Wrigley's Doublemint Gum",
-      category: "Others",
-      price: 8,
-      qty: 120,
-      dateAdded: today(),
-      expiry: "2026-12-31",
-    },
-    {
-      id: uid(),
-      name: "Scotch Tape 1 inch",
-      category: "Others",
-      price: 22,
-      qty: 30,
-      dateAdded: today(),
-      expiry: "2028-01-01",
-    },
-    {
-      id: uid(),
-      name: "Ballpen Black BIC",
-      category: "Others",
-      price: 12,
-      qty: 50,
-      dateAdded: today(),
-      expiry: "2028-01-01",
-    },
-    {
-      id: uid(),
-      name: "Plastic Bag Medium 100pcs",
-      category: "Others",
-      price: 45,
-      qty: 20,
-      dateAdded: today(),
-      expiry: "2028-01-01",
-    },
-    {
-      id: uid(),
-      name: "Century Tuna Chunks in Water",
-      category: "Canned Goods",
-      price: 32,
-      qty: 38,
-      dateAdded: today(),
-      expiry: "2026-12-31",
-    },
-    // OUT OF STOCK items
-    {
-      id: uid(),
-      name: "Birch Tree Full Cream Milk 900g",
-      category: "Dairy",
-      price: 185,
-      qty: 0,
-      dateAdded: today(),
-      expiry: "2026-04-30",
-    },
-    {
-      id: uid(),
-      name: "Purefoods Hotdog 1kg",
-      category: "Others",
-      price: 145,
-      qty: 0,
-      dateAdded: today(),
-      expiry: "2026-04-30",
-    },
-    {
-      id: uid(),
-      name: "Argentina Corned Beef 380g",
-      category: "Canned Goods",
-      price: 95,
-      qty: 0,
-      dateAdded: today(),
-      expiry: "2027-06-30",
-    },
-    {
-      id: uid(),
-      name: "Koka Instant Noodles Curry",
-      category: "Instant Noodles",
-      price: 25,
-      qty: 0,
-      dateAdded: today(),
-      expiry: "2026-06-15",
-    },
-    {
-      id: uid(),
-      name: "C2 Apple Juice 230ml",
-      category: "Beverages",
-      price: 18,
-      qty: 0,
-      dateAdded: today(),
-      expiry: "2026-04-30",
-    },
-    {
-      id: uid(),
-      name: "Palmolive Body Wash 200ml",
-      category: "Personal Care",
-      price: 95,
-      qty: 0,
-      dateAdded: today(),
-      expiry: "2027-03-31",
-    },
-    {
-      id: uid(),
-      name: "Kopiko Blanca Coffee 30g",
-      category: "Beverages",
-      price: 12,
-      qty: 2,
-      dateAdded: today(),
-      expiry: "2026-04-15",
-    },
-    {
-      id: uid(),
-      name: "Selecta Cornetto Vanilla",
-      category: "Dairy",
-      price: 35,
-      qty: 3,
-      dateAdded: today(),
-      expiry: "2026-04-20",
-    },
-    {
-      id: uid(),
-      name: "Lucky Me Bulalo Flavor",
-      category: "Instant Noodles",
-      price: 15,
-      qty: 4,
-      dateAdded: today(),
-      expiry: "2026-07-31",
-    },
-  ];
-  localStorage.setItem(PROD_KEY, JSON.stringify(p));
-  return p;
-}
-
-/* ── Seed Sales (210+ sample transactions Aug–Mar) ── */
-function seedSales() {
-  const products_list = [
-    {
-      name: "Lucky Me Pancit Canton Original",
-      cat: "Instant Noodles",
-      price: 15,
-    },
-    { name: "Nescafe 3-in-1 Original 10s", cat: "Beverages", price: 38 },
-    { name: "Milo Sachet 22g", cat: "Beverages", price: 9 },
-    { name: "Argentina Corned Beef 150g", cat: "Canned Goods", price: 48 },
-    { name: "Rebisco Crackers 250g", cat: "Snacks", price: 30 },
-    { name: "Sky Flakes Plain Crackers 250g", cat: "Snacks", price: 35 },
-    { name: "Coca-Cola Mismo 237ml", cat: "Beverages", price: 22 },
-    { name: "Palmolive Shampoo Sachet 12ml", cat: "Personal Care", price: 7 },
-    { name: "Mega Sardines in Tomato Sauce", cat: "Canned Goods", price: 18 },
-    { name: "Maggi Magic Sarap 8g", cat: "Condiments", price: 5 },
-    { name: "UFC Banana Ketchup 320g", cat: "Condiments", price: 42 },
-    { name: "Oishi Prawn Crackers 90g", cat: "Snacks", price: 28 },
-    { name: "Eden Cheese 165g", cat: "Dairy", price: 65 },
-    { name: "Surf Powder Detergent 66g", cat: "Personal Care", price: 12 },
-    { name: "White Sugar 1kg", cat: "Rice & Grains", price: 68 },
-    { name: "Nestea Iced Tea Lemon 25g", cat: "Beverages", price: 10 },
-    { name: "555 Sardines Spanish Style", cat: "Canned Goods", price: 22 },
-    { name: "Knorr Chicken Cube 10g", cat: "Condiments", price: 6 },
-    { name: "Nescafe Classic Sachet 2g", cat: "Beverages", price: 8 },
-    { name: "Payless Beef Flavor", cat: "Instant Noodles", price: 14 },
-    { name: "Cream Silk Sachet 10ml", cat: "Personal Care", price: 9 },
-    { name: "Cloud 9 Chocolate Bar", cat: "Snacks", price: 15 },
-    { name: "Head & Shoulders Sachet 12ml", cat: "Personal Care", price: 10 },
-    { name: "Tang Orange Juice 25g", cat: "Beverages", price: 8 },
-    { name: "Palmolive Conditioner Sachet", cat: "Personal Care", price: 7 },
-    { name: "Del Monte Tomato Sauce 250g", cat: "Canned Goods", price: 22 },
-    { name: "Kopiko Brown Coffee 30g", cat: "Beverages", price: 12 },
-    { name: "Monde Mamon 10s", cat: "Snacks", price: 55 },
-    { name: "Bear Brand Powdered Milk 33g", cat: "Dairy", price: 18 },
-    { name: "Magnolia Fresh Milk 1L", cat: "Dairy", price: 82 },
-  ];
-
-  // Dynamic months: last 8 months ending this month — Aug, Sep, Oct, Nov, Dec, Jan, Feb, Mar
-  const now = new Date();
-  const months = [];
-  for (let i = 7; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const yr = d.getFullYear();
-    const mo = String(d.getMonth() + 1).padStart(2, "0");
-    months.push(`${yr}-${mo}`);
-  }
-  // idx: 0=Aug, 1=Sep, 2=Oct, 3=Nov, 4=Dec, 5=Jan, 6=Feb, 7=Mar
-  // Aug & Oct = matumal months, Nov +80%, Dec +180%
-  const baseTx = [28, 65, 30, 45, 50, 58, 55, 40];
-  const qtyMult = [0.7, 1.7, 0.7, 1.8, 2.8, 1.5, 1.4, 1.2];
-
-  const txPerMonth = baseTx.map((base, i) => {
-    if (i === 3) return Math.round(base * 1.8); // November: 80% more transactions
-    if (i === 4) return Math.round(base * 2.8); // December: 180% more transactions
-    return base;
-  });
-
-  const generated = [];
-  months.forEach((ym, mi) => {
-    const [yr, mo] = ym.split("-").map(Number);
-    const isCurrentMonth =
-      yr === now.getFullYear() && mo === now.getMonth() + 1;
-    const maxDay = isCurrentMonth
-      ? now.getDate()
-      : new Date(yr, mo, 0).getDate();
-    const count = txPerMonth[mi] + Math.floor(Math.random() * 8);
-    for (let t = 0; t < count; t++) {
-      const day = 1 + Math.floor(Math.random() * (maxDay - 1));
-      const item =
-        products_list[Math.floor(Math.random() * products_list.length)];
-      // Base qty, boosted further for Nov & Dec
-      const baseQty = 3 + Math.floor(Math.random() * (mi < 4 ? 8 : 15));
-      const qty = Math.round(baseQty * qtyMult[mi]);
-      generated.push({
-        id: uid(),
-        productName: item.name,
-        category: item.cat,
-        qty,
-        price: item.price,
-        total: qty * item.price,
-        datetime: new Date(
-          yr,
-          mo - 1,
-          day,
-          7 + Math.floor(Math.random() * 12),
-          Math.floor(Math.random() * 60),
-        ).toISOString(),
-      });
-    }
-  });
-
-  localStorage.setItem(SALES_KEY, JSON.stringify(generated));
-  return generated;
 }
 
 /* ── Helpers ─────────────────────────────────────────────── */
@@ -2038,15 +806,18 @@ async function fetchSales() {
     renderSalesPage();
   } catch (error) {
     console.error("Failed to synchronize transaction ledger:", error);
-    showToast("Could not sync sales logs with server.");
+    if (typeof showToast === "function") {
+      showToast("Could not sync sales logs with server.");
+    }
   }
 }
 
 function renderSalesPage() {
   renderSalesCards();
-  populateSaleProductDropdown();
-  populateSaleMonthFilter();
-  renderSalesTable();
+  if (typeof populateSaleProductDropdown === "function")
+    populateSaleProductDropdown();
+  if (typeof populateSaleMonthFilter === "function") populateSaleMonthFilter();
+  renderSalesTable(); // 🚀 Renders the elements into your <tbody> view
 }
 
 function renderSalesCards() {
@@ -2084,6 +855,87 @@ function renderSalesCards() {
   `;
 }
 
+// 🛠️ NEW: Handles filtering controls and dynamically generates your HTML rows
+function renderSalesTable() {
+  const tbody = document.getElementById("salesTableBody");
+  const emptyState = document.getElementById("emptySales");
+
+  if (!tbody) return;
+
+  // Clear current table records
+  tbody.innerHTML = "";
+
+  // Pull values from your search and filter elements
+  const searchVal =
+    document.getElementById("saleSearch")?.value.toLowerCase() || "";
+  const filterMonth = document.getElementById("saleFilterMonth")?.value || "";
+  const filterCat = document.getElementById("saleFilterCat")?.value || "";
+
+  // Process filters sequentially over the global sales records array
+  filteredSales.forEach((sale, index) => {
+    const tr = document.createElement("tr");
+
+    // Debugging: If this prints undefined in the console, your variable name is wrong
+    console.log("Current sale object:", sale);
+
+    // Ensure we have numbers to avoid .toFixed errors
+    const price =
+      typeof sale.price === "number" ? sale.price : parseFloat(sale.price || 0);
+    const total =
+      typeof sale.total === "number" ? sale.total : parseFloat(sale.total || 0);
+
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${sale.datetime || "N/A"}</td>
+      <td><strong>${sale.productName || "Unnamed Product"}</strong></td>
+      <td><span class="category-tag">${sale.category || "Others"}</span></td>
+      <td>${sale.qty || 0}</td>
+      <td>₱${price.toFixed(2)}</td>
+      <td><strong>₱${total.toFixed(2)}</strong></td>
+      <td>
+        <button class="btn-action-delete" onclick="deleteSale(${sale.id})" style="background: none; border: none; color: red; cursor: pointer;">
+          <i class="fas fa-trash-can"></i>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Toggle empty layout view state
+  if (filteredSales.length === 0) {
+    emptyState?.classList.remove("hidden");
+    return;
+  } else {
+    emptyState?.classList.add("hidden");
+  }
+
+  // Construct table structures dynamically
+  filteredSales.forEach((sale, index) => {
+    const tr = document.createElement("tr");
+
+    // Format timestamps reliably
+    const dateObj = new Date(sale.datetime);
+    const displayDate = isNaN(dateObj.getTime())
+      ? sale.datetime
+      : dateObj.toLocaleString();
+
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${displayDate}</td>
+      <td><strong>${sale.productName || "Unnamed Product"}</strong></td>
+      <td><span class="category-tag">${sale.category || "Others"}</span></td>
+      <td>${sale.qty}</td>
+      <td>₱${sale.price.toFixed(2)}</td>
+      <td><strong>₱${sale.total.toFixed(2)}</strong></td>
+      <td>
+        <button class="btn-action-delete" onclick="deleteSale(${sale.id})" style="background: none; border: none; color: var(--danger-color, #ff4d4d); cursor: pointer;">
+          <i class="fas fa-trash-can"></i>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 /* ── SEARCHABLE PRODUCT COMBO DROPDOWN ────────────────────────────── */
 let comboCloseTimer = null;
 
@@ -2092,11 +944,15 @@ function populateSaleProductDropdown() {
 }
 
 function openProductDropdown() {
+  if (comboCloseTimer) clearTimeout(comboCloseTimer);
+
   const wrap = document.getElementById("saleProductWrap");
   const list = document.getElementById("saleProductList");
-  wrap.classList.add("open");
-  list.classList.remove("hidden");
-  renderComboOptions(document.getElementById("saleProductSearch").value);
+  if (wrap) wrap.classList.add("open");
+  if (list) list.classList.remove("hidden");
+
+  const searchInput = document.getElementById("saleProductSearch");
+  renderComboOptions(searchInput ? searchInput.value : "");
 }
 
 function scheduleCloseDropdown() {
@@ -2106,182 +962,191 @@ function scheduleCloseDropdown() {
 function closeProductDropdown() {
   const wrap = document.getElementById("saleProductWrap");
   const list = document.getElementById("saleProductList");
-  wrap.classList.remove("open");
-  list.classList.add("hidden");
+  if (wrap) wrap.classList.remove("open");
+  if (list) list.classList.add("hidden");
 }
 
 function filterProductDropdown() {
-  const q = (
-    document.getElementById("saleProductSearch").value || ""
-  ).toLowerCase();
+  const searchInput = document.getElementById("saleProductSearch");
+  const q = (searchInput ? searchInput.value : "").toLowerCase();
   renderComboOptions(q);
 }
 
 function renderComboOptions(query) {
   const list = document.getElementById("saleProductList");
+  if (!list) return;
+
   const filtered = products.filter(
     (p) =>
       !query ||
-      p.name.toLowerCase().includes(query) ||
-      p.category.toLowerCase().includes(query),
+      (p.name && p.name.toLowerCase().includes(query)) ||
+      (p.category && p.category.toLowerCase().includes(query)),
   );
+
   if (!filtered.length) {
     list.innerHTML = `<div class="combo-empty"><i class="fas fa-magnifying-glass"></i> No products found</div>`;
     return;
   }
+
   list.innerHTML = filtered
     .map((p) => {
-      const stockClass = p.qty === 0 ? "zero" : p.qty <= 10 ? "low" : "ok";
+      const stockQty = p.qty || 0;
+      const stockClass =
+        stockQty === 0 ? "zero" : stockQty <= 10 ? "low" : "ok";
       const stockLabel =
-        p.qty === 0
+        stockQty === 0
           ? "Out of Stock"
-          : p.qty <= 10
-            ? `${p.qty} left`
-            : `${p.qty} in stock`;
-      return `<div class="combo-option${p.qty === 0 ? " out-of-stock" : ""}"
-      onmousedown="selectComboProduct('${p.id}','${escHtml(p.name)}',${p.price},${p.qty})"
-    >
-      <span>${escHtml(p.name)}</span>
-      <span class="combo-option-stock ${stockClass}">${stockLabel}</span>
-    </div>`;
+          : stockQty <= 10
+            ? `${stockQty} left`
+            : `${stockQty} in stock`;
+
+      // 💎 FIXED: Pointed to selectProductFromCombo and passed p.category instead of p.qty
+      return `<div class="combo-option${stockQty === 0 ? " out-of-stock" : ""}"
+        onmousedown="selectProductFromCombo('${p.id}', '${escHtml(p.name || p.productName)}', ${p.price || 0}, '${escHtml(p.category || "Others")}')"
+      >
+        <span>${escHtml(p.name || p.productName)}</span>
+        <span class="combo-option-stock ${stockClass}">${stockLabel}</span>
+      </div>`;
     })
     .join("");
 }
 
-function selectComboProduct(id, name, price, qty) {
-  if (qty === 0) return;
-  clearTimeout(comboCloseTimer);
-  document.getElementById("saleProduct").value = id;
-  document.getElementById("saleProductSearch").value = name;
-  document.getElementById("salePrice").value = price;
-  document.getElementById("saleQty").value = "";
-  updateSaleTotal();
-  closeProductDropdown();
-}
+/* ── FORM CONTROL & SELECTION INJECTION ────────────────────────── */
 
-function onSaleProductChange() {
+function selectProductFromCombo(
+  productHashId,
+  productName,
+  productPrice,
+  productCategory,
+) {
+  if (comboCloseTimer) clearTimeout(comboCloseTimer);
+
+  document.getElementById("saleProductSearch").value = productName;
+  document.getElementById("saleProduct").value = productHashId;
+  document.getElementById("salePrice").value = productPrice;
+  document.getElementById("saleProduct").dataset.category = productCategory;
+
   updateSaleTotal();
+
+  const list = document.getElementById("saleProductList");
+  if (list) list.classList.add("hidden");
 }
 
 function updateSaleTotal() {
-  const qty = parseFloat(document.getElementById("saleQty").value) || 0;
+  const qty = parseInt(document.getElementById("saleQty").value) || 0;
   const price = parseFloat(document.getElementById("salePrice").value) || 0;
-  document.getElementById("saleTotalDisplay").textContent =
-    "₱ " + (qty * price).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  document.getElementById("saleTotalDisplay").textContent = peso(qty * price);
 }
 
-// ── DYNAMIC ASYNC TRANSACTION RECORDING ────────────────────────────
+/* ── POST: TRANSACTION CREATION INTERFACES ───────────────────────── */
 async function recordSale(event) {
-  // Prevent stealth form submission page refreshes
   if (event) event.preventDefault();
 
-  console.log("recordSale() function successfully triggered!");
+  const productId = document.getElementById("saleProduct").value;
+  const productName = document.getElementById("saleProductSearch").value;
+  const category =
+    document.getElementById("saleProduct").dataset.category || "Others";
+  const qty = parseInt(document.getElementById("saleQty").value) || 0;
+  const price = parseFloat(document.getElementById("salePrice").value) || 0;
+  const total = qty * price;
 
-  const pidEl = document.getElementById("saleProduct");
-  const qtyEl = document.getElementById("saleQty");
-  const priceEl = document.getElementById("salePrice");
-  const errEl = document.getElementById("saleError");
-
-  // Checkpoint 1: Verify all required DOM elements are found
-  if (!pidEl || !qtyEl || !priceEl || !errEl) {
-    console.error(
-      "❌ DOM Error: Missing one or more required HTML input elements!",
-      {
-        saleProduct: !!pidEl,
-        saleQty: !!qtyEl,
-        salePrice: !!priceEl,
-        saleError: !!errEl,
-      },
+  if (!productId || qty <= 0) {
+    console.warn(
+      "⚠️ Frontend validation failed. Missing productId or qty <= 0",
     );
+    const errorEl = document.getElementById("saleError");
+    if (errorEl) {
+      errorEl.textContent =
+        "Please select a valid product and enter a valid quantity.";
+      errorEl.classList.remove("hidden");
+    }
     return;
   }
 
-  const pid = pidEl.value;
-  const qty = parseInt(qtyEl.value, 10);
-  const price = parseFloat(priceEl.value);
-  const errs = [];
-
-  console.log("📥 Values collected from inputs:", { pid, qty, price });
-
-  // Checkpoint 2: Validation Rule Checks
-  if (!pid) {
-    errs.push("Please select a valid product from the dropdown list.");
-  }
-  if (isNaN(qty) || qty < 1) {
-    errs.push("Quantity must be a number equal to or greater than 1.");
-  }
-  if (isNaN(price) || price < 0) {
-    errs.push("Enter a valid unit price.");
-  }
-
-  // Safely find product to match database primary IDs
-  const prod = products.find((p) => p.id === Number(pid));
-  if (!prod && pid) {
-    errs.push(
-      "Selected product is invalid or could not be verified in stock registry.",
-    );
-  } else if (prod && qty > prod.qty) {
-    errs.push(`Insufficient stock. Only ${prod.qty} units left.`);
-  }
-
-  if (errs.length) {
-    console.warn("⚠️ Client-side validation blocked submission:", errs);
-    errEl.innerHTML =
-      '<i class="fas fa-circle-exclamation"></i> ' + errs.join(" ");
-    errEl.classList.remove("hidden");
-    return; // This is where it was silently exiting!
-  }
-  errEl.classList.add("hidden");
-
-  console.log(
-    "🚀 Validation clean! Compiling transaction payload for:",
-    prod.name,
-  );
-
-  const transactionPayload = {
-    productId: prod.id,
-    productName: prod.name,
-    category: prod.category,
+  const payload = {
+    productId,
+    productName,
+    category,
     qty,
     price,
-    total: qty * price,
+    total,
     datetime: new Date().toISOString(),
   };
 
+  // 🔍 DEBUG LOG 1
+  console.log("🚀 [STEP 1] Frontend payload built successfully:", payload);
+  console.log(
+    "📡 [STEP 2] Attempting fetch connection to:",
+    `${API_BASE}/sales`,
+  );
+
   try {
-    console.log("📡 Dispatching POST network request to server...");
     const response = await fetch(`${API_BASE}/sales`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(transactionPayload),
+      body: JSON.stringify(payload),
     });
 
-    console.log("📥 Server responded with HTTP status code:", response.status);
+    // 🔍 DEBUG LOG 2
+    console.log(
+      "📥 [STEP 3] HTTP Response received from backend. Status:",
+      response.status,
+      response.statusText,
+    );
+
     const data = await response.json();
-    console.log("📦 Server body response metadata payload:", data);
+
+    // 🔍 DEBUG LOG 3
+    console.log("📦 [STEP 4] Parsed JSON response from backend:", data);
 
     if (data.success) {
-      showToast(`Sale recorded! ₱${(qty * price).toFixed(2)} — ${prod.name}`);
+      console.log(
+        "✅ [STEP 5] Operation reported success by backend. Resetting form elements.",
+      );
 
-      // Clear tracking form inputs
-      pidEl.value = "";
+      document.getElementById("saleProduct").value = "";
       document.getElementById("saleProductSearch").value = "";
-      qtyEl.value = "";
-      priceEl.value = "";
+      document.getElementById("saleQty").value = "";
+      document.getElementById("salePrice").value = "";
       document.getElementById("saleTotalDisplay").textContent = "₱ 0.00";
 
-      // Synchronize changes to tables
-      await fetchProducts();
-      await fetchSales();
+      const errorEl = document.getElementById("saleError");
+      if (errorEl) errorEl.classList.add("hidden");
+
+      // Optional toast message replacing standard blocking alerts
+      if (typeof showToast === "function") {
+        showToast(
+          "Sale logged and database inventory counts reduced successfully!",
+        );
+      } else {
+        alert(
+          "Sale logged and database inventory counts reduced successfully!",
+        );
+      }
+
+      // 2. Fetch fresh rows directly from MySQL to keep state synchronized
+      if (typeof fetchSales === "function") {
+        console.log("🔄 Fetching updated sales list from database...");
+        await fetchSales();
+      }
+
+      if (typeof fetchProducts === "function") {
+        console.log("🔄 Fetching updated products inventory...");
+        await fetchProducts();
+      }
     } else {
-      showToast(data.message || "Failed to finalize transaction logs.");
+      console.error("❌ Backend rejected processing:", data.message);
+      alert("Server processing error: " + data.message);
     }
   } catch (error) {
+    // 🔍 DEBUG LOG 4
     console.error(
-      "❌ Network transmission down or server script crashed:",
+      "💥 [CRITICAL FAILURE] Fetch operation completely crashed:",
       error,
     );
-    showToast("Server connection error during processing.");
+    alert(
+      "Network connection failed! Is your backend Node server running on port 5000?",
+    );
   }
 }
 
@@ -2311,12 +1176,14 @@ function setDashChartMode(mode, btn) {
 }
 
 function renderSalesCharts() {
-  renderMonthlyBarChart(
-    "salesMonthlyChart",
-    "salesMonthlyLabels",
-    null,
-    salesChartMode,
-  );
+  if (typeof renderMonthlyBarChart === "function") {
+    renderMonthlyBarChart(
+      "salesMonthlyChart",
+      "salesMonthlyLabels",
+      null,
+      salesChartMode,
+    );
+  }
   const el = document.getElementById("salesTopChart");
   if (!el) return;
   const totals = {};
@@ -2346,6 +1213,7 @@ function renderSalesCharts() {
 
 function populateSaleMonthFilter() {
   const sel = document.getElementById("saleFilterMonth");
+  if (!sel) return;
   const cur = sel.value;
   const keys = [...new Set(sales.map((s) => monthKey(s.datetime)))]
     .sort()
@@ -2365,6 +1233,8 @@ function renderSalesTable() {
   const tbody = document.getElementById("salesTableBody");
   const empty = document.getElementById("emptySales");
 
+  if (!tbody) return;
+
   let filtered = [...sales]
     .filter(
       (s) =>
@@ -2377,10 +1247,10 @@ function renderSalesTable() {
 
   if (!filtered.length) {
     tbody.innerHTML = "";
-    empty.classList.remove("hidden");
+    if (empty) empty.classList.remove("hidden");
     return;
   }
-  empty.classList.add("hidden");
+  if (empty) empty.classList.add("hidden");
 
   tbody.innerHTML = filtered
     .map(
@@ -2403,9 +1273,9 @@ function renderSalesTable() {
     .join("");
 }
 
-// ── DYNAMIC ASYNC SINGLE TRANSACTION REMOVAL ───────────────────────
+/* ── DELETE MODAL MANIPULATIONS ─────────────────────────────────── */
 function openDeleteSaleModal(id) {
-  deleteSaleId = Number(id); // Cast explicitly to alignment match MySQL INT type
+  deleteSaleId = Number(id);
   document.getElementById("deleteSaleModal").classList.remove("hidden");
 }
 
@@ -2414,30 +1284,59 @@ function closeDeleteSaleModal() {
   document.getElementById("deleteSaleModal").classList.add("hidden");
 }
 
+/* ── UPDATED DELETE FUNCTION ─────────────────────────────────────── */
 async function confirmDeleteSale() {
-  if (!deleteSaleId) return;
+  console.log("DEBUG: confirmDeleteSale started for ID:", deleteSaleId);
+
+  if (!deleteSaleId) {
+    console.error("DEBUG: No deleteSaleId provided.");
+    return;
+  }
 
   try {
-    const response = await fetch(`${API_BASE}/sales/${deleteSaleId}`, {
+    // 1. Construct the target URL
+    const url = `${API_BASE}/sales/${deleteSaleId}`;
+    console.log("DEBUG: Sending DELETE request to:", url);
+
+    // 2. Execute the DELETE request
+    const response = await fetch(url, {
       method: "DELETE",
+      headers: { "Content-Type": "application/json" },
     });
+
+    // 3. Log status for debugging (prevents "pending" confusion)
+    console.log("DEBUG: Response status:", response.status);
+
+    // 4. Handle non-200 responses
+    if (!response.ok) {
+      const errData = await response
+        .json()
+        .catch(() => ({ message: "Unknown server error" }));
+      console.error("DEBUG: Server error details:", errData);
+      throw new Error(errData.message || "Failed to delete");
+    }
+
+    // 5. Successful deletion
     const data = await response.json();
+    console.log("DEBUG: Backend response success:", data);
 
     if (data.success) {
       closeDeleteSaleModal();
 
-      // Update inventory list state and logs UI components instantly
-      await fetchProducts();
-      await fetchSales();
-      showToast("Sale deleted. Stock restored.");
+      // Refresh UI components
+      if (typeof fetchSales === "function") await fetchSales();
+      if (typeof fetchProducts === "function") await fetchProducts();
+
+      if (typeof showToast === "function")
+        showToast("Sale deleted successfully.");
     }
   } catch (error) {
-    console.error("Deletion operation halted:", error);
-    showToast("Failed to complete record removal.");
+    console.error("DEBUG: Fatal deletion error:", error);
+    if (typeof showToast === "function")
+      showToast("Error deleting sale: " + error.message);
   }
 }
 
-// ── DYNAMIC ASYNC BULK TRANSACTION CLEARING ──────────────────────
 function openClearAllModal() {
   document.getElementById("clearAllCount").textContent =
     sales.length + " record" + (sales.length !== 1 ? "s" : "");
@@ -2446,6 +1345,7 @@ function openClearAllModal() {
   document.getElementById("clearAllModal").classList.remove("hidden");
 }
 
+/* ── REPORT BALANCERS & SYNC RUNNERS ─────────────────────────────── */
 function closeClearAllModal() {
   document.getElementById("clearAllModal").classList.add("hidden");
 }
@@ -2464,15 +1364,15 @@ async function confirmClearAll() {
 
     if (data.success) {
       closeClearAllModal();
-
-      // Fully refresh structural tracking elements on screen
-      await fetchProducts();
-      await fetchSales();
-      showToast("All sales cleared. Stock restored.");
+      if (typeof fetchProducts === "function") await fetchProducts();
+      if (typeof fetchSales === "function") await fetchSales();
+      if (typeof showToast === "function")
+        showToast("All sales cleared. Stock restored.");
     }
   } catch (error) {
     console.error("Purging process aborted:", error);
-    showToast("Failed to safely reset transaction history.");
+    if (typeof showToast === "function")
+      showToast("Failed to safely reset transaction history.");
   }
 }
 
@@ -2480,25 +1380,28 @@ function clearAllSales() {
   openClearAllModal();
 }
 
-/* ══════════════════════════════════════════════
-    SLOW MOVERS REPORT GENERATION
-══════════════════════════════════════════════ */
+/* ── SLOW MOVERS REPORT GENERATION ───────────────────────────────── */
 function getSlowMovers() {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 30);
   const recentSales = sales.filter((s) => new Date(s.datetime) >= cutoff);
   const recentTotals = {};
+
   recentSales.forEach((s) => {
     recentTotals[s.productName] =
       (recentTotals[s.productName] || 0) + Number(s.qty);
   });
+
   return products
-    .map((p) => ({
-      name: p.name,
-      category: p.category,
-      qty: p.qty,
-      soldLast30: recentTotals[p.name] || 0,
-    }))
+    .map((p) => {
+      const currentProdName = p.name || p.productName || "";
+      return {
+        name: currentProdName,
+        category: p.category || "Others",
+        qty: p.qty || 0,
+        soldLast30: recentTotals[currentProdName] || 0,
+      };
+    })
     .filter((p) => p.soldLast30 === 0)
     .sort((a, b) => b.qty - a.qty)
     .slice(0, 10);
@@ -2531,6 +1434,52 @@ function renderSlowMovers(chartId, countId) {
     </div>`,
     )
     .join("");
+}
+
+/* ── DEFENSIVE UTIL FORMATTERS HELPERS ─────────────────────────────── */
+function peso(val) {
+  return (
+    "₱ " +
+    Number(val).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
+}
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+function fmtDatetime(d) {
+  return d ? new Date(d).toLocaleString() : "";
+}
+function shortNum(v) {
+  return Number(v) >= 1000 ? (Number(v) / 1000).toFixed(1) + "k" : v;
+}
+function monthKey(d) {
+  return d ? new Date(d).toISOString().slice(0, 7) : "";
+}
+function monthLabel(k) {
+  if (!k) return "";
+  const [y, m] = k.split("-");
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  return `${months[parseInt(m) - 1]} ${y}`;
 }
 
 /* ══════════════════════════════════════════════
@@ -3452,7 +2401,6 @@ function seedExpenses() {
    EXPENSES PAGE
 ═══════════════════════════════════════════════════════════ */
 function renderFinancePage() {
-  // Default to expenses tab, reset to it each time
   switchFinanceTab("expenses", document.getElementById("ftab-btn-expenses"));
 }
 
@@ -3591,51 +2539,74 @@ function renderExpensesTable() {
     </tr>`,
     )
     .join("");
+
+  function fmtDate(dateString) {
+    if (!dateString) return "N/A";
+
+    const d = new Date(dateString);
+
+    if (isNaN(d.getTime())) {
+      return dateString;
+    }
+
+    return d.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
 }
 
-function submitExpense() {
+// Replace your existing submitExpense with this:
+async function submitExpense() {
   const desc = document.getElementById("eDesc").value.trim();
   const cat = document.getElementById("eCat").value;
   const amount = parseFloat(document.getElementById("eAmount").value);
   const date = document.getElementById("eDate").value;
-  const errEl = document.getElementById("expFormError");
-  if (!desc || !cat || !date || isNaN(amount) || amount <= 0) {
-    errEl.innerHTML =
-      '<i class="fas fa-circle-exclamation"></i> Please fill in all fields correctly.';
-    errEl.classList.remove("hidden");
-    return;
+  const id = document.getElementById("eId").value; // This is key!
+
+  try {
+    const response = await fetch(`${API_BASE}/expenses`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, desc, category: cat, amount, date }),
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      cancelExpenseForm();
+      await fetchExpenses();
+      showToast(id ? "Expense updated!" : "Expense added!");
+    }
+  } catch (err) {
+    showToast("Failed to save expense.");
   }
-  errEl.classList.add("hidden");
-  const id = document.getElementById("eId").value;
-  if (id) {
-    const idx = expenses.findIndex((e) => e.id === id);
-    if (idx > -1) expenses[idx] = { id, desc, category: cat, amount, date };
-  } else {
-    expenses.push({ id: uid(), desc, category: cat, amount, date });
-  }
-  saveExpenses();
-  cancelExpenseForm();
+}
+
+async function fetchExpenses() {
+  const response = await fetch(`${API_BASE}/expenses`);
+  expenses = await response.json();
   renderExpensesPage();
-  showToast(id ? "Expense updated!" : "Expense added!");
 }
 
 function editExpense(id) {
-  const e = expenses.find((x) => x.id === id);
+  const e = expenses.find((x) => x.id == id);
   if (!e) return;
+
   document.getElementById("eDesc").value = e.desc;
   document.getElementById("eCat").value = e.category;
   document.getElementById("eAmount").value = e.amount;
   document.getElementById("eDate").value = e.date;
+
   document.getElementById("eId").value = e.id;
+
   document.getElementById("expFormTitle").innerHTML =
     '<i class="fas fa-pen"></i> Edit Expense';
   document.getElementById("expSubmitBtn").innerHTML =
     '<i class="fas fa-floppy-disk"></i> Update Expense';
   document.getElementById("expCancelBtn").style.display = "";
-  document.getElementById("productForm") &&
-    document.getElementById("productForm").scrollIntoView;
-  document.getElementById("eDesc").focus();
   window.scrollTo({ top: 0, behavior: "smooth" });
+  document.getElementById("eDesc").focus();
 }
 
 function cancelExpenseForm() {
@@ -3663,12 +2634,25 @@ function openDeleteExpenseModal(id) {
     : "This cannot be undone.";
   document.getElementById("deleteExpenseModal").classList.remove("hidden");
 }
-function confirmDeleteExpense() {
-  expenses = expenses.filter((e) => e.id !== deleteExpenseId);
-  saveExpenses();
-  document.getElementById("deleteExpenseModal").classList.add("hidden");
-  renderExpensesPage();
-  showToast("Expense deleted.");
+
+async function confirmDeleteExpense() {
+  if (!deleteExpenseId) return;
+
+  try {
+    const response = await fetch(`${API_BASE}/expenses/${deleteExpenseId}`, {
+      method: "DELETE",
+    });
+    const result = await response.json();
+
+    if (result.success) {
+      document.getElementById("deleteExpenseModal").classList.add("hidden");
+      await fetchExpenses(); // Refresh the list from the DB
+      showToast("Expense deleted.");
+    }
+  } catch (err) {
+    console.error("Delete failed:", err);
+    showToast("Error deleting expense.");
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -3791,4 +2775,28 @@ function renderProfitPage() {
       </div>`,
           )
           .join("");
+}
+
+// REPORT GENERATION
+
+async function downloadFullReport() {
+  try {
+    const response = await fetch(`${API_BASE}/reports/download`);
+    if (!response.ok) throw new Error("Network response was not ok");
+
+    // Convert response to blob
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    // Trigger download
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `SmartStock_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (err) {
+    console.error("Download failed:", err);
+    alert("Could not generate report.");
+  }
 }
