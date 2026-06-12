@@ -18,7 +18,6 @@ const SALES_KEY = "palengke_sales";
 const EXP_KEY = "palengke_expenses";
 const VER_KEY = "palengke_version";
 const CURR_VER = "v17";
-// const CREDS = { username: "admin", password: "admin123" };
 const LOW_STOCK = 10;
 
 const CAT_COLORS = {
@@ -68,6 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadData();
   loadAppearance();
   updateTopbarDate();
+
   setInterval(updateTopbarDate, 60000);
 
   if (sessionStorage.getItem("palengke_auth") === "1") {
@@ -98,7 +98,6 @@ function loadData() {
       localStorage.setItem(VER_KEY, CURR_VER);
     }
 
-    // Load only non-database UI/Profile state
     if (!localStorage.getItem("palengke_profile")) {
       localStorage.setItem(
         "palengke_profile",
@@ -296,7 +295,7 @@ function showApp() {
     () => navigate("dashboard", document.querySelector(".nav-item")),
     50,
   );
-  fetchProducts();
+  // fetchProducts();
 }
 
 /* ══════════════════════════════════════════════
